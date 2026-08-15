@@ -1,0 +1,21 @@
+version: 3
+
+includes:
+  backend:
+    dir: backend
+    taskfile: backend/Taskfile.yml
+  frontend:
+    dir: frontend
+    taskfile: frontend/Taskfile.yml
+  infra:
+    dir: infra
+    taskfile: infra/Taskfile.yml
+
+tasks:
+  default:
+    cmd: task --list-all
+
+  build:
+    cmds:
+      - task: backend:build
+      - task: frontend:build

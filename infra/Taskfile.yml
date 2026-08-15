@@ -1,0 +1,7 @@
+version: 3
+
+tasks:
+  plan:
+    cmd: tofu plan
+  apply:
+    cmd: tofu apply

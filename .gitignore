@@ -1,0 +1,41 @@
+# ========================
+# General / OS
+# ========================
+.DS_Store
+.vscode/
+.idea/
+*.log
+
+# ========================
+# Backend (Go)
+# ========================
+/backend/bootstrap
+/backend/bootstrap.zip
+/backend/deployment.zip
+
+# ========================
+# Frontend (Vite / TanStack)
+# ========================
+/frontend/.tanstack
+/frontend/node_modules/
+/frontend/dist/
+/frontend/dist-ssr/
+/frontend/.env.local
+/frontend/.env.*.local
+
+# ========================
+# Infrastructure (OpenTofu)
+# ========================
+# Local state files (must not be committed)
+/infra/*.tfstate
+/infra/*.tfstate.backup
+/infra/*.tfvars
+/infra/*.tfvars.json
+
+# OpenTofu/Terraform cache and plugins
+/infra/.terraform/
+/infra/.tofu/
+
+# Crash logs
+/infra/crash.log
+/infra/crash.*.log
