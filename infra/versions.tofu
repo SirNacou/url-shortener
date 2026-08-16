@@ -13,9 +13,10 @@ terraform {
   }
 
   backend "s3" {
-    bucket       = "url-shortener-opentofu-state"
-    key          = "prod/terraform.tfstate"
+    bucket       = "opentofu-state-419212279550"
+    key          = "url-shortener/terraform.tfstate"
     region       = "ap-southeast-1"
+    encrypt      = true
     use_lockfile = true
   }
 }

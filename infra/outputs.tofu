@@ -22,8 +22,3 @@ output "cloudfront_url" {
   value       = "https://${aws_cloudfront_distribution.cdn.domain_name}"
   description = "The public HTTPS entrypoint for both frontend and backend"
 }
-
-output "github_actions_role_arn" {
-  value       = aws_iam_role.github_actions.arn
-  description = "IAM Role ARN for GitHub Actions OIDC authentication"
-}
