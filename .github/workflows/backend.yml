@@ -18,7 +18,6 @@ env:
   AWS_REGION: ap-southeast-1
   ROLE_ARN: arn:aws:iam::419212279550:role/github-global-deployer
   LAMBDA_FUNCTION_NAME: url-shortener-api
-  GO_VERSION: "1.26"
 
 jobs:
   test:
