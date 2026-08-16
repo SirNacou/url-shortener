@@ -1,0 +1,97 @@
+name: Frontend Deployment
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "frontend/**"
+  pull_request:
+    branches: [main]
+    paths:
+      - "frontend/**"
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: ap-southeast-1
+  ROLE_ARN: arn:aws:iam::419212279550:role/github-global-deployer
+  S3_BUCKET_NAME: url-shortener-web-419212279550
+  CLOUDFRONT_DISTRIBUTION_ID: E1XXXXXXXXXXXX
+
+jobs:
+  build:
+    name: Build & Test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v7
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: frontend/package.json
+
+      - name: Install Dependencies
+        run: bun i --frozen-lockfile
+
+      - name: Build Static Assets
+        run: bun run build
+
+      - name: Upload Build Artifact
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v7
+        with:
+          name: frontend-dist
+          path: frontend/dist
+          retention-days: 1
+
+  deploy:
+    name: Deploy to S3 & CloudFront
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Download Build Artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: frontend-dist
+          path: dist
+
+      - name: Configure AWS Credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ env.ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Verify S3 Bucket Exists
+        run: |
+          if ! aws s3api head-bucket --bucket ${{ env.S3_BUCKET_NAME }} >/dev/null 2>&1; then
+            echo "::error::S3 bucket '${{ env.S3_BUCKET_NAME }}' does not exist. Run the infra workflow first."
+            exit 1
+          fi
+
+      - name: Sync Files to S3
+        run: |
+          aws s3 sync dist/ s3://${{ env.S3_BUCKET_NAME }} --delete
+
+      - name: Fetch CloudFront Distribution ID
+        run: |
+          DIST_ID=$(aws ssm get-parameter \
+            --name "/url-shortener/cloudfront-distribution-id" \
+            --query "Parameter.Value" \
+            --output text)
+          echo "CLOUDFRONT_DISTRIBUTION_ID=$DIST_ID" >> $GITHUB_ENV
+
+      - name: Invalidate CloudFront Cache
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ env.CLOUDFRONT_DISTRIBUTION_ID }} \
+            --paths "/*"

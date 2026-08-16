@@ -9,7 +9,7 @@ data "archive_file" "lambda_zip" {
 }
 
 resource "aws_lambda_function" "api" {
-  function_name = "${var.project_name}-api"
+  function_name = "url-shortener-api"
   runtime       = "provided.al2023"
   architectures = ["arm64"]
   handler       = "bootstrap"

@@ -1,0 +1,97 @@
+name: Backend Deployment
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "backend/**"
+  pull_request:
+    branches: [main]
+    paths:
+      - "backend/**"
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: ap-southeast-1
+  ROLE_ARN: arn:aws:iam::419212279550:role/github-global-deployer
+  LAMBDA_FUNCTION_NAME: url-shortener-api
+  GO_VERSION: "1.26"
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v7
+
+      - name: Setup Go
+        uses: actions/setup-go@v7
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+          cache-dependency-path: backend/go.sum
+
+      - name: Run Tests
+        run: go test -v -race ./...
+
+  build-and-deploy:
+    name: Build and Deploy
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v7
+
+      - name: Configure AWS Credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ env.ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Verify Lambda Exists
+        run: |
+          if ! aws lambda get-function --function-name ${{ env.LAMBDA_FUNCTION_NAME }} >/dev/null 2>&1; then
+            echo "::error::Lambda function '${{ env.LAMBDA_FUNCTION_NAME }}' does not exist. Run the infra workflow first."
+            exit 1
+          fi
+
+      - name: Setup Go
+        uses: actions/setup-go@v7
+        with:
+          go-version-file: backend/go.mod
+          cache-dependency-path: backend/go.sum
+
+      - name: Build Binary
+        run: |
+          CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build \
+            -tags lambda.norpc \
+            -ldflags="-s -w" \
+            -o bootstrap .
+          zip bootstrap.zip bootstrap
+
+      - name: Update Lambda Code
+        run: |
+          aws lambda update-function-code \
+            --function-name ${{ env.LAMBDA_FUNCTION_NAME }} \
+            --zip-file fileb://bootstrap.zip \
+            --publish
+
+      - name: Wait for Lambda Update
+        run: |
+          aws lambda wait function-updated \
+            --function-name ${{ env.LAMBDA_FUNCTION_NAME }}
