@@ -1,6 +1,6 @@
-output "cloudfront_url" {
-  value       = "https://${aws_cloudfront_distribution.cdn.domain_name}"
-  description = "The public HTTPS entrypoint for both frontend and backend"
+output "aws_region" {
+  value       = var.aws_region
+  description = "Target AWS deployment region"
 }
 
 output "s3_bucket_name" {
@@ -11,4 +11,19 @@ output "s3_bucket_name" {
 output "lambda_function_name" {
   value       = aws_lambda_function.api.function_name
   description = "Lambda function name for backend updates"
+}
+
+output "cloudfront_distribution_id" {
+  value       = aws_cloudfront_distribution.cdn.id
+  description = "CloudFront distribution ID for cache invalidations"
+}
+
+output "cloudfront_url" {
+  value       = "https://${aws_cloudfront_distribution.cdn.domain_name}"
+  description = "The public HTTPS entrypoint for both frontend and backend"
+}
+
+output "github_actions_role_arn" {
+  value       = aws_iam_role.github_actions.arn
+  description = "IAM Role ARN for GitHub Actions OIDC authentication"
 }
