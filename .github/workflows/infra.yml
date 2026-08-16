@@ -1,0 +1,87 @@
+name: Infrastructure
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "infra/**"
+  pull_request:
+    branches: [main]
+    paths:
+      - "infra/**"
+
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
+
+jobs:
+  plan:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: infra
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup OpenTofu
+        uses: opentofu/setup-opentofu@v2
+        with:
+          tofu_version: "1.12.5"
+
+      - name: Configure AWS Credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ secrets.ROLE_TO_ASSUME }}
+          aws-region: ${{ secrets.REGION }}
+
+      - name: OpenTofu Init
+        run: tofu init
+
+      - name: OpenTofu Plan
+        run: tofu plan -out=tfplan
+
+      - name: Upload Plan Artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: opentofu-plan
+          path: infra/tfplan
+          retention-days: 1
+
+  apply:
+    needs: plan
+    runs-on: ubuntu-latest
+    environment: production
+    defaults:
+      run:
+        working-directory: infra
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup OpenTofu
+        uses: opentofu/setup-opentofu@v2
+        with:
+          tofu_version: "1.12.5"
+
+      - name: Configure AWS Credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ secrets.ROLE_TO_ASSUME }}
+          aws-region: ${{ secrets.REGION }}
+
+      - name: OpenTofu Init
+        run: tofu init
+
+      - name: Download Plan Artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: opentofu-plan
+          path: infra/tfplan
+
+      - name: OpenTofu Apply
+        run: tofu apply tfplan

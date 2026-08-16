@@ -1,7 +1,11 @@
 data "archive_file" "lambda_zip" {
   type        = "zip"
-  source_file = "${path.module}/../backend/bootstrap"
   output_path = "${path.module}/bootstrap.zip"
+
+  source {
+    content  = "#!/bin/sh\necho 'Initial provisioning placeholder'"
+    filename = "bootstrap"
+  }
 }
 
 resource "aws_lambda_function" "api" {
@@ -9,15 +13,21 @@ resource "aws_lambda_function" "api" {
   runtime       = "provided.al2023"
   architectures = ["arm64"]
   handler       = "bootstrap"
-  role          = aws_iam_role.lambda_exec.id
+  role          = aws_iam_role.lambda_exec.arn
 
-  filename         = data.archive_file.lambda_zip.output_path
-  source_code_hash = data.archive_file.lambda_zip.output_base64sha256
+  filename = data.archive_file.lambda_zip.output_path
 
   environment {
     variables = {
       TABLE_NAME = aws_dynamodb_table.urls.name
     }
+  }
+
+  lifecycle {
+    ignore_changes = [
+      filename,
+      source_code_hash
+    ]
   }
 }
 
