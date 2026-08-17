@@ -41,7 +41,7 @@ func (s *Server) Register() {
 	huma.Register(s.api, huma.Operation{
 		Method: "GET",
 		Path:   "/api/urls",
-	}, NewListHandler().Handle)
+	}, NewListHandler(s.repo).Handle)
 
 	huma.Register(s.api, huma.Operation{
 		Method: "GET",

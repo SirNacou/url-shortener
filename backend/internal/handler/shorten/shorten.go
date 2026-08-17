@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 	"url-shortener/internal/domain"
+	"url-shortener/internal/handler/utils"
 	"url-shortener/internal/repository"
 
 	"github.com/danielgtaylor/huma/v2"
@@ -42,7 +43,7 @@ func (h *ShortenHandler) Handle(ctx context.Context, req *ShortenRequest) (*Shor
 			return nil, huma.Error500InternalServerError("failed to save custom URL")
 		}
 
-		return buildResponse(item, req.resolveBaseURL("")), nil
+		return buildResponse(item, req.ResolveBaseURL("")), nil
 	}
 
 	res := new(ShortenResponse)
@@ -62,7 +63,7 @@ func (h *ShortenHandler) Handle(ctx context.Context, req *ShortenRequest) (*Shor
 			return err
 		}
 
-		res = buildResponse(record, req.resolveBaseURL(""))
+		res = buildResponse(record, req.ResolveBaseURL(""))
 		return nil
 	})
 
@@ -74,9 +75,7 @@ func (h *ShortenHandler) Handle(ctx context.Context, req *ShortenRequest) (*Shor
 }
 
 type ShortenRequest struct {
-	XForwardedProto string `header:"x-forwarded-proto" doc:"Protocol from CloudFront/ALB (http or https)"`
-	XForwardedHost  string `header:"x-forwarded-host" doc:"Host from CloudFront/ALB"`
-	Host            string `header:"host" doc:"Fallback host header"`
+	utils.URLResolver
 
 	Body struct {
 		URL           string `json:"url" format:"uri"`

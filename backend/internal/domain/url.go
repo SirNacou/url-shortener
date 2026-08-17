@@ -5,13 +5,13 @@ import (
 )
 
 type URL struct {
-	PK            string    `dynamodbav:"pk"`
-	Code          string    `dynamodbav:"code"`
-	TargetURL     string    `dynamodbav:"target_url"`
-	CreateAt      time.Time `dynamodbav:"create_at"`
-	ExpiresAt     time.Time `dynamodbav:"expires_at"`
-	Clicks        int64     `dynamodbav:"clicks"`
-	LastClickedAt int64     `dynamodbav:"last_clicked_at,omitempty"`
+	PK            string     `dynamodbav:"pk"`
+	Code          string     `dynamodbav:"code"`
+	TargetURL     string     `dynamodbav:"target_url"`
+	CreateAt      time.Time  `dynamodbav:"create_at"`
+	ExpiresAt     time.Time  `dynamodbav:"expires_at"`
+	Clicks        int64      `dynamodbav:"clicks"`
+	LastClickedAt *time.Time `dynamodbav:"last_clicked_at,omitempty"`
 }
 
 func NewURL(code string, targetURL string, expiresInDays int) *URL {
