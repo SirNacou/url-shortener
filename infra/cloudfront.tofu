@@ -92,10 +92,3 @@ resource "aws_cloudfront_distribution" "cdn" {
     cloudfront_default_certificate = true
   }
 }
-
-resource "aws_ssm_parameter" "cloudfront_distribution_id" {
-  name        = "/url-shortener/cloudfront-distribution-id"
-  description = "CloudFront Distribution ID for URL Shortener Web"
-  type        = "String"
-  value       = aws_cloudfront_distribution.cdn.id
-}

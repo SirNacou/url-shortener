@@ -20,8 +20,6 @@ permissions:
 env:
   AWS_REGION: ap-southeast-1
   ROLE_ARN: arn:aws:iam::419212279550:role/github-global-deployer
-  S3_BUCKET_NAME: url-shortener-web-419212279550
-  CLOUDFRONT_DISTRIBUTION_ID: E1XXXXXXXXXXXX
 
 jobs:
   build:
@@ -74,27 +72,27 @@ jobs:
           role-to-assume: ${{ env.ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Verify S3 Bucket Exists
+      - name: Fetch Infrastructure Outputs from SSM
         run: |
-          if ! aws s3api head-bucket --bucket ${{ env.S3_BUCKET_NAME }} >/dev/null 2>&1; then
-            echo "::error::S3 bucket '${{ env.S3_BUCKET_NAME }}' does not exist. Run the infra workflow first."
-            exit 1
-          fi
+          BUCKET=$(aws ssm get-parameter \
+            --name "/url-shortener/frontend-bucket-name" \
+            --query "Parameter.Value" \
+            --output text)
 
-      - name: Sync Files to S3
-        run: |
-          aws s3 sync dist/ s3://${{ env.S3_BUCKET_NAME }} --delete
-
-      - name: Fetch CloudFront Distribution ID
-        run: |
           DIST_ID=$(aws ssm get-parameter \
             --name "/url-shortener/cloudfront-distribution-id" \
             --query "Parameter.Value" \
             --output text)
+
+          echo "S3_BUCKET_NAME=$BUCKET" >> $GITHUB_ENV
           echo "CLOUDFRONT_DISTRIBUTION_ID=$DIST_ID" >> $GITHUB_ENV
+
+      - name: Sync Files to S3
+        run: |
+          aws s3 sync dist/ s3://${S3_BUCKET_NAME} --delete
 
       - name: Invalidate CloudFront Cache
         run: |
           aws cloudfront create-invalidation \
-            --distribution-id ${{ env.CLOUDFRONT_DISTRIBUTION_ID }} \
+            --distribution-id ${CLOUDFRONT_DISTRIBUTION_ID} \
             --paths "/*"
