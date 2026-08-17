@@ -1,9 +1,23 @@
 package handler
 
-import "net/http"
+import (
+	"context"
 
-func (s *Server) Get() http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	})
+	"github.com/google/uuid"
+)
+
+type GetHandler struct{}
+
+func NewGetHandler() *GetHandler {
+	return &GetHandler{}
 }
+
+func (h *GetHandler) Handle(ctx context.Context, req *GetRequest) (*GetResponse, error) {
+	return &GetResponse{}, nil
+}
+
+type GetRequest struct {
+	ID uuid.UUID `path:"id"`
+}
+
+type GetResponse struct{}

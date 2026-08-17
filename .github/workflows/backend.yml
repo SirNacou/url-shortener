@@ -83,7 +83,7 @@ jobs:
           CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build \
             -tags lambda.norpc \
             -ldflags="-s -w" \
-            -o bootstrap ./cmd/lambda/main.go
+            -o bootstrap ./cmd/api/main.go
           zip bootstrap.zip bootstrap
 
       - name: Update Lambda Code

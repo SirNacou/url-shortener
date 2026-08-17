@@ -1,22 +1,18 @@
 package handler
 
 import (
-	"net/http"
-
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"context"
 )
 
-func List(db *dynamodb.Client, tableName string) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		_, err := db.GetItem(r.Context(), &dynamodb.GetItemInput{
-			TableName: aws.String(tableName),
-		})
+type ListHandler struct{}
 
-		if err != nil {
-			w.WriteHeader(http.StatusTeapot)
-		}
-
-		w.WriteHeader(http.StatusOK)
-	})
+func NewListHandler() *ListHandler {
+	return &ListHandler{}
 }
+
+func (h *ListHandler) Handle(ctx context.Context, req *ListRequest) (*ListResponse, error) {
+	return &ListResponse{}, nil
+}
+
+type ListRequest struct{}
+type ListResponse struct{}

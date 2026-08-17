@@ -19,3 +19,30 @@ tasks:
     cmds:
       - task: backend:build
       - task: frontend:build
+
+  gen:api:spec:
+    desc: "Generate OpenAPI JSON specification from Go definitions"
+    dir: backend
+    sources:
+      - "**/*.go"
+    generates:
+      - "../frontend/src/api/openapi.json"
+    cmds:
+      - go run ./cmd/gen > ../frontend/src/api/openapi.json
+
+  gen:api:types:
+    desc: "Generate TypeScript types from OpenAPI JSON using Bun"
+    dir: frontend
+    deps:
+      - gen:api:spec
+    sources:
+      - "src/api/openapi.json"
+    generates:
+      - "src/api"
+    cmds:
+      - bun run openapi-ts
+
+  gen:api:
+    desc: "Full generation: OpenAPI JSON and TypeScript types"
+    cmds:
+      - task: gen:api:types
