@@ -1,4 +1,4 @@
-data "archive_file" "lambda_zip" {
+data "archive_file" "dummy_lambda" {
   type        = "zip"
   output_path = "${path.module}/bootstrap.zip"
 
@@ -15,11 +15,19 @@ resource "aws_lambda_function" "api" {
   handler       = "bootstrap"
   role          = aws_iam_role.lambda_exec.arn
 
-  filename = data.archive_file.lambda_zip.output_path
+  filename         = data.archive_file.dummy_lambda.output_path
+  source_code_hash = data.archive_file.dummy_lambda.output_base64sha256
+
+  layers = [
+    "arn:aws:lambda:${var.aws_region}:753240598075:layer:LambdaAdapterLayerArm64:24"
+  ]
 
   environment {
     variables = {
-      TABLE_NAME = aws_dynamodb_table.urls.name
+      PORT                         = "8080"
+      AWS_LWA_PORT                 = "8080"
+      AWS_LWA_READINESS_CHECK_PATH = "/healthz"
+      TABLE_NAME                   = aws_dynamodb_table.urls.name
     }
   }
 
