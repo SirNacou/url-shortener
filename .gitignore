@@ -39,3 +39,5 @@
 # Crash logs
 /infra/crash.log
 /infra/crash.*.log
+
+.task/
