@@ -5,10 +5,13 @@ on:
     branches: [main]
     paths:
       - "backend/**"
+      - ".github/workflows/backend.yml"
   pull_request:
     branches: [main]
     paths:
       - "backend/**"
+      - ".github/workflows/backend.yml"
+  workflow_dispatch:
 
 permissions:
   id-token: write
@@ -80,7 +83,7 @@ jobs:
           CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build \
             -tags lambda.norpc \
             -ldflags="-s -w" \
-            -o bootstrap .
+            -o bootstrap ./cmd/lambda/main.go
           zip bootstrap.zip bootstrap
 
       - name: Update Lambda Code
