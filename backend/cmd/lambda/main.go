@@ -23,7 +23,7 @@ func main() {
 	srv := handler.NewServer(dynamodbClient, cfg.TableName)
 
 	mux := http.NewServeMux()
-	mux.Handle("GET /api/urls", srv.List())
+	mux.Handle("GET /api/urls", handler.List(dynamodbClient, cfg.TableName))
 	mux.Handle("GET /api/urls/{id}", srv.Get())
 
 	log.Printf("Server listening on port %s\n", cfg.Port)
