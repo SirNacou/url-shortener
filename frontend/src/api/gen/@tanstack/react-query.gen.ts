@@ -68,9 +68,9 @@ export const getApiUrlsOptions = (options?: Options<GetApiUrlsData>) => queryOpt
     queryKey: getApiUrlsQueryKey(options)
 });
 
-export const getApiUrlsByIdQueryKey = (options?: Options<GetApiUrlsByIdData>) => createQueryKey('getApiUrlsById', options);
+export const getApiUrlsByIdQueryKey = (options: Options<GetApiUrlsByIdData>) => createQueryKey('getApiUrlsById', options);
 
-export const getApiUrlsByIdOptions = (options?: Options<GetApiUrlsByIdData>) => queryOptions<GetApiUrlsByIdResponse, GetApiUrlsByIdError, GetApiUrlsByIdResponse, ReturnType<typeof getApiUrlsByIdQueryKey>>({
+export const getApiUrlsByIdOptions = (options: Options<GetApiUrlsByIdData>) => queryOptions<GetApiUrlsByIdResponse, GetApiUrlsByIdError, GetApiUrlsByIdResponse, ReturnType<typeof getApiUrlsByIdQueryKey>>({
     queryFn: async ({ queryKey, signal }) => {
         const { data } = await getApiUrlsById({
             ...options,

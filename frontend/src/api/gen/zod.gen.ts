@@ -18,6 +18,20 @@ export const zErrorModel = z.object({
     type: z.url().optional().default('about:blank')
 });
 
+export const zShortenRequestBody = z.object({
+    $schema: z.url().readonly().optional(),
+    custom_code: z.string().min(3).max(30).regex(/^[a-zA-Z0-9_-]+$/).optional(),
+    expires_in_days: z.coerce.bigint().gte(BigInt(1)).lte(BigInt(365)).optional().default(BigInt(30)),
+    url: z.url()
+});
+
+export const zShortenResponseBody = z.object({
+    $schema: z.url().readonly().optional(),
+    code: z.string(),
+    expires_at: z.iso.datetime(),
+    short_url: z.string()
+});
+
 export const zErrorModelWritable = z.object({
     detail: z.string().optional(),
     errors: z.array(zErrorDetail).nullish(),
@@ -27,15 +41,39 @@ export const zErrorModelWritable = z.object({
     type: z.url().optional().default('about:blank')
 });
 
+export const zShortenRequestBodyWritable = z.object({
+    custom_code: z.string().min(3).max(30).regex(/^[a-zA-Z0-9_-]+$/).optional(),
+    expires_in_days: z.coerce.bigint().gte(BigInt(1)).lte(BigInt(365)).optional().default(BigInt(30)),
+    url: z.url()
+});
+
+export const zShortenResponseBodyWritable = z.object({
+    code: z.string(),
+    expires_at: z.iso.datetime(),
+    short_url: z.string()
+});
+
+export const zPostApiShortenBody = zShortenRequestBodyWritable;
+
+export const zPostApiShortenHeaders = z.object({
+    'x-forwarded-proto': z.string().optional(),
+    'x-forwarded-host': z.string().optional(),
+    host: z.string().optional()
+});
+
 /**
- * No Content
+ * OK
  */
-export const zPostApiShortenResponse = z.void();
+export const zPostApiShortenResponse = zShortenResponseBody;
 
 /**
  * No Content
  */
 export const zGetApiUrlsResponse = z.void();
+
+export const zGetApiUrlsByIdPath = z.object({
+    id: z.string()
+});
 
 /**
  * No Content

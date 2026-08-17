@@ -50,6 +50,32 @@ export type ErrorModel = {
     type?: string;
 };
 
+export type ShortenRequestBody = {
+    /**
+     * A URL to the JSON Schema for this object.
+     */
+    readonly $schema?: string;
+    /**
+     * Optional custom slug
+     */
+    custom_code?: string;
+    /**
+     * Duration before expiration
+     */
+    expires_in_days?: number;
+    url: string;
+};
+
+export type ShortenResponseBody = {
+    /**
+     * A URL to the JSON Schema for this object.
+     */
+    readonly $schema?: string;
+    code: string;
+    expires_at: string;
+    short_url: string;
+};
+
 export type ErrorModelWritable = {
     /**
      * A human-readable explanation specific to this occurrence of the problem.
@@ -77,8 +103,40 @@ export type ErrorModelWritable = {
     type?: string;
 };
 
+export type ShortenRequestBodyWritable = {
+    /**
+     * Optional custom slug
+     */
+    custom_code?: string;
+    /**
+     * Duration before expiration
+     */
+    expires_in_days?: number;
+    url: string;
+};
+
+export type ShortenResponseBodyWritable = {
+    code: string;
+    expires_at: string;
+    short_url: string;
+};
+
 export type PostApiShortenData = {
-    body?: never;
+    body: ShortenRequestBodyWritable;
+    headers?: {
+        /**
+         * Protocol from CloudFront/ALB (http or https)
+         */
+        'x-forwarded-proto'?: string;
+        /**
+         * Host from CloudFront/ALB
+         */
+        'x-forwarded-host'?: string;
+        /**
+         * Fallback host header
+         */
+        host?: string;
+    };
     path?: never;
     query?: never;
     url: '/api/shorten';
@@ -95,9 +153,9 @@ export type PostApiShortenError = PostApiShortenErrors[keyof PostApiShortenError
 
 export type PostApiShortenResponses = {
     /**
-     * No Content
+     * OK
      */
-    204: void;
+    200: ShortenResponseBody;
 };
 
 export type PostApiShortenResponse = PostApiShortenResponses[keyof PostApiShortenResponses];
@@ -129,7 +187,9 @@ export type GetApiUrlsResponse = GetApiUrlsResponses[keyof GetApiUrlsResponses];
 
 export type GetApiUrlsByIdData = {
     body?: never;
-    path?: never;
+    path: {
+        id: string;
+    };
     query?: never;
     url: '/api/urls/{id}';
 };

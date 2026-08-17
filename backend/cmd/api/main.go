@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"url-shortener/internal/config"
 	"url-shortener/internal/handler"
+	"url-shortener/internal/repository"
 
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/danielgtaylor/huma/v2"
@@ -21,11 +22,12 @@ func main() {
 	}
 
 	dynamodbClient := dynamodb.NewFromConfig(cfg.AWSConfig)
+	repo := repository.NewURLRepository(dynamodbClient, cfg.TableName)
 
 	mux := http.NewServeMux()
 	api := humago.New(mux, huma.DefaultConfig("URL Shortener API", "1.0.0"))
 
-	srv := handler.NewServer(dynamodbClient, cfg.TableName, api)
+	srv := handler.NewServer(repo, api)
 	srv.Register()
 
 	log.Printf("Server listening on port %s\n", cfg.Port)

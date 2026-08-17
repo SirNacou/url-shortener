@@ -5,7 +5,7 @@ import * as z from 'zod';
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
 import type { GetApiUrlsByIdData, GetApiUrlsByIdErrors, GetApiUrlsByIdResponses, GetApiUrlsData, GetApiUrlsErrors, GetApiUrlsResponses, GetHealthzData, GetHealthzErrors, GetHealthzResponses, GetSByCodeData, GetSByCodeErrors, GetSByCodeResponses, PostApiShortenData, PostApiShortenErrors, PostApiShortenResponses } from './types.gen';
-import { zGetApiUrlsByIdResponse, zGetApiUrlsResponse, zGetSByCodePath, zGetSByCodeResponse, zPostApiShortenResponse } from './zod.gen';
+import { zGetApiUrlsByIdPath, zGetApiUrlsByIdResponse, zGetApiUrlsResponse, zGetSByCodePath, zGetSByCodeResponse, zPostApiShortenBody, zPostApiShortenHeaders, zPostApiShortenResponse } from './zod.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -21,15 +21,20 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
     meta?: keyof ClientMeta extends never ? Record<string, unknown> : ClientMeta;
 };
 
-export const postApiShorten = <ThrowOnError extends boolean = false>(options?: Options<PostApiShortenData, ThrowOnError>): RequestResult<PostApiShortenResponses, PostApiShortenErrors, ThrowOnError> => (options?.client ?? client).post<PostApiShortenResponses, PostApiShortenErrors, ThrowOnError>({
+export const postApiShorten = <ThrowOnError extends boolean = false>(options: Options<PostApiShortenData, ThrowOnError>): RequestResult<PostApiShortenResponses, PostApiShortenErrors, ThrowOnError> => (options.client ?? client).post<PostApiShortenResponses, PostApiShortenErrors, ThrowOnError>({
     requestValidator: async (data) => await z.object({
-        body: z.never().optional(),
+        body: zPostApiShortenBody,
+        headers: zPostApiShortenHeaders.optional(),
         path: z.never().optional(),
         query: z.never().optional()
     }).parseAsync(data),
     responseValidator: async (data) => await zPostApiShortenResponse.parseAsync(data),
     url: '/api/shorten',
-    ...options
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
 });
 
 export const getApiUrls = <ThrowOnError extends boolean = false>(options?: Options<GetApiUrlsData, ThrowOnError>): RequestResult<GetApiUrlsResponses, GetApiUrlsErrors, ThrowOnError> => (options?.client ?? client).get<GetApiUrlsResponses, GetApiUrlsErrors, ThrowOnError>({
@@ -43,10 +48,10 @@ export const getApiUrls = <ThrowOnError extends boolean = false>(options?: Optio
     ...options
 });
 
-export const getApiUrlsById = <ThrowOnError extends boolean = false>(options?: Options<GetApiUrlsByIdData, ThrowOnError>): RequestResult<GetApiUrlsByIdResponses, GetApiUrlsByIdErrors, ThrowOnError> => (options?.client ?? client).get<GetApiUrlsByIdResponses, GetApiUrlsByIdErrors, ThrowOnError>({
+export const getApiUrlsById = <ThrowOnError extends boolean = false>(options: Options<GetApiUrlsByIdData, ThrowOnError>): RequestResult<GetApiUrlsByIdResponses, GetApiUrlsByIdErrors, ThrowOnError> => (options.client ?? client).get<GetApiUrlsByIdResponses, GetApiUrlsByIdErrors, ThrowOnError>({
     requestValidator: async (data) => await z.object({
         body: z.never().optional(),
-        path: z.never().optional(),
+        path: zGetApiUrlsByIdPath,
         query: z.never().optional()
     }).parseAsync(data),
     responseValidator: async (data) => await zGetApiUrlsByIdResponse.parseAsync(data),

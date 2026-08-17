@@ -23,7 +23,8 @@ resource "aws_iam_role_policy" "lambda_policy" {
         Action = [
           "dynamodb:GetItem",
           "dynamodb:PutItem",
-          "dynamodb:DeleteItem"
+          "dynamodb:DeleteItem",
+          "dynamodb:Scan"
         ]
         Resource = aws_dynamodb_table.urls.arn
       },

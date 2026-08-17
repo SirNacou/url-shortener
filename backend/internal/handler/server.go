@@ -3,19 +3,19 @@ package handler
 import (
 	"context"
 	"net/http"
+	"url-shortener/internal/handler/shorten"
+	"url-shortener/internal/repository"
 
-	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/danielgtaylor/huma/v2"
 )
 
 type Server struct {
-	db        *dynamodb.Client
-	tableName string
-	api       huma.API
+	repo *repository.URLRepository
+	api  huma.API
 }
 
-func NewServer(db *dynamodb.Client, tableName string, api huma.API) *Server {
-	return &Server{db: db, tableName: tableName, api: api}
+func NewServer(repo *repository.URLRepository, api huma.API) *Server {
+	return &Server{repo: repo, api: api}
 }
 
 func (s *Server) Register() {
@@ -28,14 +28,15 @@ func (s *Server) Register() {
 	})
 
 	huma.Register(s.api, huma.Operation{
-		Method: "GET",
-		Path:   "/s/{code}",
-	}, NewRedirectHandler().Handle)
+		Method:        "GET",
+		Path:          "/s/{code}",
+		DefaultStatus: http.StatusTemporaryRedirect,
+	}, NewRedirectHandler(s.repo).Handle)
 
 	huma.Register(s.api, huma.Operation{
 		Method: "POST",
 		Path:   "/api/shorten",
-	}, NewShortenHandler().Handle)
+	}, shorten.NewShortenHandler(s.repo).Handle)
 
 	huma.Register(s.api, huma.Operation{
 		Method: "GET",
@@ -45,7 +46,5 @@ func (s *Server) Register() {
 	huma.Register(s.api, huma.Operation{
 		Method: "GET",
 		Path:   "/api/urls/{id}",
-	}, func(ctx context.Context, i *struct{}) (*struct{}, error) {
-		return nil, nil
-	})
+	}, NewGetHandler().Handle)
 }

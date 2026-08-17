@@ -81,6 +81,82 @@
           }
         },
         "type": "object"
+      },
+      "ShortenRequestBody": {
+        "additionalProperties": false,
+        "properties": {
+          "$schema": {
+            "description": "A URL to the JSON Schema for this object.",
+            "examples": [
+              "https://example.com/schemas/ShortenRequestBody.json"
+            ],
+            "format": "uri",
+            "readOnly": true,
+            "type": "string"
+          },
+          "custom_code": {
+            "description": "Optional custom slug",
+            "maxLength": 30,
+            "minLength": 3,
+            "pattern": "^[a-zA-Z0-9_-]+$",
+            "type": "string"
+          },
+          "expires_in_days": {
+            "default": 30,
+            "description": "Duration before expiration",
+            "format": "int64",
+            "maximum": 365,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "url": {
+            "format": "uri",
+            "type": "string"
+          }
+        },
+        "required": [
+          "url"
+        ],
+        "type": "object"
+      },
+      "ShortenResponseBody": {
+        "additionalProperties": false,
+        "properties": {
+          "$schema": {
+            "description": "A URL to the JSON Schema for this object.",
+            "examples": [
+              "https://example.com/schemas/ShortenResponseBody.json"
+            ],
+            "format": "uri",
+            "readOnly": true,
+            "type": "string"
+          },
+          "code": {
+            "examples": [
+              "xyz123"
+            ],
+            "type": "string"
+          },
+          "expires_at": {
+            "examples": [
+              "2022-01-01T00:00:00Z"
+            ],
+            "format": "date-time",
+            "type": "string"
+          },
+          "short_url": {
+            "examples": [
+              "https://s.apps.nacou.dev/s/xyz123"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "short_url",
+          "code",
+          "expires_at"
+        ],
+        "type": "object"
       }
     }
   },
@@ -92,16 +168,55 @@
   "paths": {
     "/api/shorten": {
       "post": {
-        "responses": {
-          "204": {
-            "description": "No Content",
-            "headers": {
-              "ShortURL": {
-                "schema": {
-                  "type": "string"
-                }
+        "parameters": [
+          {
+            "description": "Protocol from CloudFront/ALB (http or https)",
+            "in": "header",
+            "name": "x-forwarded-proto",
+            "schema": {
+              "description": "Protocol from CloudFront/ALB (http or https)",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Host from CloudFront/ALB",
+            "in": "header",
+            "name": "x-forwarded-host",
+            "schema": {
+              "description": "Host from CloudFront/ALB",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Fallback host header",
+            "in": "header",
+            "name": "host",
+            "schema": {
+              "description": "Fallback host header",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShortenRequestBody"
               }
             }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShortenResponseBody"
+                }
+              }
+            },
+            "description": "OK"
           },
           "default": {
             "content": {
@@ -137,6 +252,16 @@
     },
     "/api/urls/{id}": {
       "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "204": {
             "description": "No Content"

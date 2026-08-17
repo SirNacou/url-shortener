@@ -17,7 +17,7 @@ func main() {
 	api := humago.New(mux, huma.DefaultConfig("URL Shortener API", "1.0.0"))
 
 	// Pass nil for DB client since we only need route metadata
-	srv := handler.NewServer(nil, "", api)
+	srv := handler.NewServer(nil, api)
 	srv.Register()
 
 	data, err := json.MarshalIndent(api.OpenAPI(), "", "  ")
