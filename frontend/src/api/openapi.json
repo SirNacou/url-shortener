@@ -82,6 +82,39 @@
         },
         "type": "object"
       },
+      "ResponseBody": {
+        "additionalProperties": false,
+        "properties": {
+          "$schema": {
+            "description": "A URL to the JSON Schema for this object.",
+            "examples": [
+              "https://example.com/schemas/ResponseBody.json"
+            ],
+            "format": "uri",
+            "readOnly": true,
+            "type": "string"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/URLItem"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "next_cursor": {
+            "examples": [
+              "eyJwayI6IkNPREUjeHl6MTIzIn0="
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "type": "object"
+      },
       "ShortenRequestBody": {
         "additionalProperties": false,
         "properties": {
@@ -115,7 +148,8 @@
           }
         },
         "required": [
-          "url"
+          "url",
+          "expires_in_days"
         ],
         "type": "object"
       },
@@ -154,6 +188,66 @@
         "required": [
           "short_url",
           "code",
+          "expires_at"
+        ],
+        "type": "object"
+      },
+      "URLItem": {
+        "additionalProperties": false,
+        "properties": {
+          "clicks": {
+            "examples": [
+              42
+            ],
+            "format": "int64",
+            "type": "integer"
+          },
+          "code": {
+            "examples": [
+              "xyz123"
+            ],
+            "type": "string"
+          },
+          "created_at": {
+            "examples": [
+              "2022-01-01T00:00:00Z"
+            ],
+            "format": "date-time",
+            "type": "string"
+          },
+          "expires_at": {
+            "examples": [
+              "2022-01-01T00:00:00Z"
+            ],
+            "format": "date-time",
+            "type": "string"
+          },
+          "last_clicked_at": {
+            "examples": [
+              "2022-01-01T00:00:00Z"
+            ],
+            "format": "date-time",
+            "type": "string"
+          },
+          "short_url": {
+            "examples": [
+              "https://nacou.dev/xyz123"
+            ],
+            "type": "string"
+          },
+          "target_url": {
+            "examples": [
+              "https://example.com/very/long/url"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "short_url",
+          "target_url",
+          "clicks",
+          "created_at",
           "expires_at"
         ],
         "type": "object"
@@ -233,9 +327,69 @@
     },
     "/api/urls": {
       "get": {
+        "parameters": [
+          {
+            "description": "Number of items to return",
+            "explode": false,
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 20,
+              "description": "Number of items to return",
+              "format": "int64",
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Pagination token from previous response",
+            "explode": false,
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "description": "Pagination token from previous response",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Protocol from CloudFront/ALB (http or https)",
+            "in": "header",
+            "name": "x-forwarded-proto",
+            "schema": {
+              "description": "Protocol from CloudFront/ALB (http or https)",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Host from CloudFront/ALB",
+            "in": "header",
+            "name": "x-forwarded-host",
+            "schema": {
+              "description": "Host from CloudFront/ALB",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Fallback host header",
+            "in": "header",
+            "name": "host",
+            "schema": {
+              "description": "Fallback host header",
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
-          "204": {
-            "description": "No Content"
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseBody"
+                }
+              }
+            },
+            "description": "OK"
           },
           "default": {
             "content": {
@@ -302,17 +456,30 @@
       "get": {
         "parameters": [
           {
+            "description": "Short code slug",
             "in": "path",
             "name": "code",
             "required": true,
             "schema": {
+              "description": "Short code slug",
+              "maxLength": 30,
+              "minLength": 1,
+              "pattern": "^[a-zA-Z0-9_-]+$",
               "type": "string"
             }
           }
         ],
         "responses": {
-          "204": {
-            "description": "No Content"
+          "307": {
+            "description": "Temporary Redirect",
+            "headers": {
+              "Location": {
+                "schema": {
+                  "description": "Target destination URL",
+                  "type": "string"
+                }
+              }
+            }
           },
           "default": {
             "content": {

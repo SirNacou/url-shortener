@@ -63,7 +63,7 @@ type ResponseBody struct {
 }
 type URLItem struct {
 	Code          string     `json:"code" example:"xyz123"`
-	ShortURL      string     `json:"short_url" example:"https://nacou.dev/xyz123"`
+	ShortURL      string     `json:"short_url" example:"https://nacou.dev/s/xyz123"`
 	TargetURL     string     `json:"target_url" example:"https://example.com/very/long/url"`
 	Clicks        int64      `json:"clicks" example:"42"`
 	CreatedAt     time.Time  `json:"created_at" example:"2022-01-01T00:00:00Z"`

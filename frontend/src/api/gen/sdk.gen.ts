@@ -5,7 +5,7 @@ import * as z from 'zod';
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
 import type { GetApiUrlsByIdData, GetApiUrlsByIdErrors, GetApiUrlsByIdResponses, GetApiUrlsData, GetApiUrlsErrors, GetApiUrlsResponses, GetHealthzData, GetHealthzErrors, GetHealthzResponses, GetSByCodeData, GetSByCodeErrors, GetSByCodeResponses, PostApiShortenData, PostApiShortenErrors, PostApiShortenResponses } from './types.gen';
-import { zGetApiUrlsByIdPath, zGetApiUrlsByIdResponse, zGetApiUrlsResponse, zGetSByCodePath, zGetSByCodeResponse, zPostApiShortenBody, zPostApiShortenHeaders, zPostApiShortenResponse } from './zod.gen';
+import { zGetApiUrlsByIdPath, zGetApiUrlsByIdResponse, zGetApiUrlsHeaders, zGetApiUrlsQuery, zGetApiUrlsResponse, zGetSByCodePath, zGetSByCodeResponse, zPostApiShortenBody, zPostApiShortenHeaders, zPostApiShortenResponse } from './zod.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -28,7 +28,7 @@ export const postApiShorten = <ThrowOnError extends boolean = false>(options: Op
         path: z.never().optional(),
         query: z.never().optional()
     }).parseAsync(data),
-    responseValidator: async (data) => await zPostApiShortenResponse.parseAsync(data),
+    responseTransformer: async (data) => await zPostApiShortenResponse.parseAsync(data),
     url: '/api/shorten',
     ...options,
     headers: {
@@ -40,10 +40,11 @@ export const postApiShorten = <ThrowOnError extends boolean = false>(options: Op
 export const getApiUrls = <ThrowOnError extends boolean = false>(options?: Options<GetApiUrlsData, ThrowOnError>): RequestResult<GetApiUrlsResponses, GetApiUrlsErrors, ThrowOnError> => (options?.client ?? client).get<GetApiUrlsResponses, GetApiUrlsErrors, ThrowOnError>({
     requestValidator: async (data) => await z.object({
         body: z.never().optional(),
+        headers: zGetApiUrlsHeaders.optional(),
         path: z.never().optional(),
-        query: z.never().optional()
+        query: zGetApiUrlsQuery.optional()
     }).parseAsync(data),
-    responseValidator: async (data) => await zGetApiUrlsResponse.parseAsync(data),
+    responseTransformer: async (data) => await zGetApiUrlsResponse.parseAsync(data),
     url: '/api/urls',
     ...options
 });
@@ -54,7 +55,7 @@ export const getApiUrlsById = <ThrowOnError extends boolean = false>(options: Op
         path: zGetApiUrlsByIdPath,
         query: z.never().optional()
     }).parseAsync(data),
-    responseValidator: async (data) => await zGetApiUrlsByIdResponse.parseAsync(data),
+    responseTransformer: async (data) => await zGetApiUrlsByIdResponse.parseAsync(data),
     url: '/api/urls/{id}',
     ...options
 });
@@ -75,7 +76,7 @@ export const getSByCode = <ThrowOnError extends boolean = false>(options: Option
         path: zGetSByCodePath,
         query: z.never().optional()
     }).parseAsync(data),
-    responseValidator: async (data) => await zGetSByCodeResponse.parseAsync(data),
+    responseTransformer: async (data) => await zGetSByCodeResponse.parseAsync(data),
     url: '/s/{code}',
     ...options
 });

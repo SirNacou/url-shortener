@@ -8,6 +8,8 @@ export const zErrorDetail = z.object({
     value: z.unknown().optional()
 });
 
+export type ErrorDetailZodInput = z.input<typeof zErrorDetail>;
+
 export const zErrorModel = z.object({
     $schema: z.url().readonly().optional(),
     detail: z.string().optional(),
@@ -18,19 +20,45 @@ export const zErrorModel = z.object({
     type: z.url().optional().default('about:blank')
 });
 
+export type ErrorModelZodInput = z.input<typeof zErrorModel>;
+
 export const zShortenRequestBody = z.object({
     $schema: z.url().readonly().optional(),
     custom_code: z.string().min(3).max(30).regex(/^[a-zA-Z0-9_-]+$/).optional(),
-    expires_in_days: z.coerce.bigint().gte(BigInt(1)).lte(BigInt(365)).optional().default(BigInt(30)),
+    expires_in_days: z.coerce.bigint().gte(BigInt(1)).lte(BigInt(365)).default(BigInt(30)),
     url: z.url()
 });
+
+export type ShortenRequestBodyZodInput = z.input<typeof zShortenRequestBody>;
 
 export const zShortenResponseBody = z.object({
     $schema: z.url().readonly().optional(),
     code: z.string(),
-    expires_at: z.iso.datetime(),
+    expires_at: z.iso.datetime({ offset: true }),
     short_url: z.string()
 });
+
+export type ShortenResponseBodyZodInput = z.input<typeof zShortenResponseBody>;
+
+export const zUrlItem = z.object({
+    clicks: z.coerce.bigint().min(BigInt('-9223372036854775808'), { error: 'Invalid value: Expected int64 to be >= -9223372036854775808' }).max(BigInt('9223372036854775807'), { error: 'Invalid value: Expected int64 to be <= 9223372036854775807' }),
+    code: z.string(),
+    created_at: z.iso.datetime({ offset: true }),
+    expires_at: z.iso.datetime({ offset: true }),
+    last_clicked_at: z.iso.datetime({ offset: true }).optional(),
+    short_url: z.string(),
+    target_url: z.string()
+});
+
+export type UrlItemZodInput = z.input<typeof zUrlItem>;
+
+export const zResponseBody = z.object({
+    $schema: z.url().readonly().optional(),
+    items: z.array(zUrlItem).nullable(),
+    next_cursor: z.string().optional()
+});
+
+export type ResponseBodyZodInput = z.input<typeof zResponseBody>;
 
 export const zErrorModelWritable = z.object({
     detail: z.string().optional(),
@@ -41,19 +69,34 @@ export const zErrorModelWritable = z.object({
     type: z.url().optional().default('about:blank')
 });
 
+export type ErrorModelWritableZodInput = z.input<typeof zErrorModelWritable>;
+
+export const zResponseBodyWritable = z.object({
+    items: z.array(zUrlItem).nullable(),
+    next_cursor: z.string().optional()
+});
+
+export type ResponseBodyWritableZodInput = z.input<typeof zResponseBodyWritable>;
+
 export const zShortenRequestBodyWritable = z.object({
     custom_code: z.string().min(3).max(30).regex(/^[a-zA-Z0-9_-]+$/).optional(),
-    expires_in_days: z.coerce.bigint().gte(BigInt(1)).lte(BigInt(365)).optional().default(BigInt(30)),
+    expires_in_days: z.coerce.bigint().gte(BigInt(1)).lte(BigInt(365)).default(BigInt(30)),
     url: z.url()
 });
 
+export type ShortenRequestBodyWritableZodInput = z.input<typeof zShortenRequestBodyWritable>;
+
 export const zShortenResponseBodyWritable = z.object({
     code: z.string(),
-    expires_at: z.iso.datetime(),
+    expires_at: z.iso.datetime({ offset: true }),
     short_url: z.string()
 });
 
+export type ShortenResponseBodyWritableZodInput = z.input<typeof zShortenResponseBodyWritable>;
+
 export const zPostApiShortenBody = zShortenRequestBodyWritable;
+
+export type PostApiShortenBodyZodInput = z.input<typeof zPostApiShortenBody>;
 
 export const zPostApiShortenHeaders = z.object({
     'x-forwarded-proto': z.string().optional(),
@@ -61,30 +104,59 @@ export const zPostApiShortenHeaders = z.object({
     host: z.string().optional()
 });
 
+export type PostApiShortenHeadersZodInput = z.input<typeof zPostApiShortenHeaders>;
+
 /**
  * OK
  */
 export const zPostApiShortenResponse = zShortenResponseBody;
 
+export type postApiShortenResponseZodOutput = z.output<typeof zPostApiShortenResponse>;
+
+export const zGetApiUrlsHeaders = z.object({
+    'x-forwarded-proto': z.string().optional(),
+    'x-forwarded-host': z.string().optional(),
+    host: z.string().optional()
+});
+
+export type GetApiUrlsHeadersZodInput = z.input<typeof zGetApiUrlsHeaders>;
+
+export const zGetApiUrlsQuery = z.object({
+    limit: z.coerce.bigint().gte(BigInt(1)).lte(BigInt(100)).optional().default(BigInt(20)),
+    cursor: z.string().optional()
+});
+
+export type GetApiUrlsQueryZodInput = z.input<typeof zGetApiUrlsQuery>;
+
 /**
- * No Content
+ * OK
  */
-export const zGetApiUrlsResponse = z.void();
+export const zGetApiUrlsResponse = zResponseBody;
+
+export type getApiUrlsResponseZodOutput = z.output<typeof zGetApiUrlsResponse>;
 
 export const zGetApiUrlsByIdPath = z.object({
     id: z.string()
 });
+
+export type GetApiUrlsByIdPathZodInput = z.input<typeof zGetApiUrlsByIdPath>;
 
 /**
  * No Content
  */
 export const zGetApiUrlsByIdResponse = z.void();
 
+export type getApiUrlsByIdResponseZodOutput = z.output<typeof zGetApiUrlsByIdResponse>;
+
 export const zGetSByCodePath = z.object({
-    code: z.string()
+    code: z.string().min(1).max(30).regex(/^[a-zA-Z0-9_-]+$/)
 });
 
+export type GetSByCodePathZodInput = z.input<typeof zGetSByCodePath>;
+
 /**
- * No Content
+ * Error
  */
-export const zGetSByCodeResponse = z.void();
+export const zGetSByCodeResponse = zErrorModel;
+
+export type getSByCodeResponseZodOutput = z.output<typeof zGetSByCodeResponse>;

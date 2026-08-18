@@ -50,6 +50,15 @@ export type ErrorModel = {
     type?: string;
 };
 
+export type ResponseBody = {
+    /**
+     * A URL to the JSON Schema for this object.
+     */
+    readonly $schema?: string;
+    items: Array<UrlItem> | null;
+    next_cursor?: string;
+};
+
 export type ShortenRequestBody = {
     /**
      * A URL to the JSON Schema for this object.
@@ -62,7 +71,7 @@ export type ShortenRequestBody = {
     /**
      * Duration before expiration
      */
-    expires_in_days?: number;
+    expires_in_days: number;
     url: string;
 };
 
@@ -74,6 +83,16 @@ export type ShortenResponseBody = {
     code: string;
     expires_at: string;
     short_url: string;
+};
+
+export type UrlItem = {
+    clicks: number;
+    code: string;
+    created_at: string;
+    expires_at: string;
+    last_clicked_at?: string;
+    short_url: string;
+    target_url: string;
 };
 
 export type ErrorModelWritable = {
@@ -103,6 +122,11 @@ export type ErrorModelWritable = {
     type?: string;
 };
 
+export type ResponseBodyWritable = {
+    items: Array<UrlItem> | null;
+    next_cursor?: string;
+};
+
 export type ShortenRequestBodyWritable = {
     /**
      * Optional custom slug
@@ -111,7 +135,7 @@ export type ShortenRequestBodyWritable = {
     /**
      * Duration before expiration
      */
-    expires_in_days?: number;
+    expires_in_days: number;
     url: string;
 };
 
@@ -162,8 +186,31 @@ export type PostApiShortenResponse = PostApiShortenResponses[keyof PostApiShorte
 
 export type GetApiUrlsData = {
     body?: never;
+    headers?: {
+        /**
+         * Protocol from CloudFront/ALB (http or https)
+         */
+        'x-forwarded-proto'?: string;
+        /**
+         * Host from CloudFront/ALB
+         */
+        'x-forwarded-host'?: string;
+        /**
+         * Fallback host header
+         */
+        host?: string;
+    };
     path?: never;
-    query?: never;
+    query?: {
+        /**
+         * Number of items to return
+         */
+        limit?: number;
+        /**
+         * Pagination token from previous response
+         */
+        cursor?: string;
+    };
     url: '/api/urls';
 };
 
@@ -178,9 +225,9 @@ export type GetApiUrlsError = GetApiUrlsErrors[keyof GetApiUrlsErrors];
 
 export type GetApiUrlsResponses = {
     /**
-     * No Content
+     * OK
      */
-    204: void;
+    200: ResponseBody;
 };
 
 export type GetApiUrlsResponse = GetApiUrlsResponses[keyof GetApiUrlsResponses];
@@ -238,6 +285,9 @@ export type GetHealthzResponses = {
 export type GetSByCodeData = {
     body?: never;
     path: {
+        /**
+         * Short code slug
+         */
         code: string;
     };
     query?: never;
@@ -255,9 +305,9 @@ export type GetSByCodeError = GetSByCodeErrors[keyof GetSByCodeErrors];
 
 export type GetSByCodeResponses = {
     /**
-     * No Content
+     * Error
      */
-    204: void;
+    default: ErrorModel;
 };
 
 export type GetSByCodeResponse = GetSByCodeResponses[keyof GetSByCodeResponses];
