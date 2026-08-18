@@ -26,12 +26,12 @@ func (r *URLRepository) Get(code string) (*domain.URL, error) {
 }
 
 func (r *URLRepository) Find(ctx context.Context, code string) (*domain.URL, error) {
-	pk := "Code#" + code
+	id := "Code#" + code
 
 	out, err := r.client.GetItem(ctx, &dynamodb.GetItemInput{
 		TableName: aws.String(r.tableName),
 		Key: map[string]types.AttributeValue{
-			"pk": &types.AttributeValueMemberS{Value: pk},
+			"id": &types.AttributeValueMemberS{Value: id},
 		},
 		ConsistentRead: aws.Bool(true),
 	})
@@ -53,7 +53,6 @@ func (r *URLRepository) Find(ctx context.Context, code string) (*domain.URL, err
 }
 
 func (r *URLRepository) Save(ctx context.Context, url *domain.URL) error {
-	url.PK = "Code#" + url.Code
 	item, err := attributevalue.MarshalMap(url)
 	if err != nil {
 		return fmt.Errorf("marshal record: %w", err)

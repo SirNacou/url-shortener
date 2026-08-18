@@ -5,7 +5,7 @@ import (
 )
 
 type URL struct {
-	PK            string     `dynamodbav:"pk"`
+	ID            string     `dynamodbav:"id"`
 	Code          string     `dynamodbav:"code"`
 	TargetURL     string     `dynamodbav:"target_url"`
 	CreateAt      time.Time  `dynamodbav:"create_at"`
@@ -17,7 +17,7 @@ type URL struct {
 func NewURL(code string, targetURL string, expiresInDays int) *URL {
 	now := time.Now()
 	return &URL{
-		PK:        code,
+		ID:        "Code#" + code,
 		Code:      code,
 		TargetURL: targetURL,
 		CreateAt:  now,
