@@ -2,6 +2,5 @@ import type { CreateClientConfig } from "./api/gen/client.gen";
 
 export const createClientConfig: CreateClientConfig = (config) => ({
 	...config,
-	// baseUrl: window.location.origin,
-	baseUrl: "http://localhost:8080",
+	baseUrl: window.location.origin,
 });
