@@ -16,8 +16,8 @@ export const Route = createRootRoute({
 function RootComponent() {
 	return (
 		<QueryClientProvider client={queryClient}>
-			<Toaster />
 			<Outlet />
+			<Toaster />
 			<TanStackDevtools
 				config={{
 					position: "bottom-right",
