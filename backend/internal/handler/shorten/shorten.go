@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"time"
 	"url-shortener/internal/domain"
 	"url-shortener/internal/handler/utils"
@@ -32,24 +33,40 @@ func NewShortenHandler(repo *repository.URLRepository) *ShortenHandler {
 }
 
 func (h *ShortenHandler) Handle(ctx context.Context, req *ShortenRequest) (*ShortenResponse, error) {
+	// 1. Create a structured logger with common request context
+	log := slog.With(
+		"url", req.Body.URL,
+		"custom_code", req.Body.CustomCode,
+		"expires_in_days", req.Body.ExpiresInDays,
+	)
 
 	if req.Body.CustomCode != "" {
+		log.Info("attempting to create custom short URL")
+
 		item := domain.NewURL(req.Body.CustomCode, req.Body.URL, req.Body.ExpiresInDays)
 		err := h.repo.Save(ctx, item)
 		if err != nil {
 			if errors.Is(err, domain.ErrAlreadyExists) {
+				log.Warn("custom code conflict")
 				return nil, huma.Error409Conflict("custom code already in use")
 			}
+			log.Error("failed to save custom URL", "error", err)
 			return nil, huma.Error500InternalServerError("failed to save custom URL")
 		}
 
+		log.Info("custom URL created successfully", "code", item.Code)
 		return buildResponse(item, req.ResolveBaseURL("")), nil
 	}
 
+	// 2. Logic for random code generation
 	res := new(ShortenResponse)
+	attempts := 0
+
 	err := retry.RetryOnConflict(DefaultBackoff, func() error {
+		attempts++
 		code, err := GenerateCode(6)
 		if err != nil {
+			log.Error("failed to generate random code", "error", err)
 			return err
 		}
 
@@ -57,10 +74,12 @@ func (h *ShortenHandler) Handle(ctx context.Context, req *ShortenRequest) (*Shor
 
 		err = h.repo.Save(ctx, record)
 		if err != nil {
-			if !errors.Is(err, domain.ErrAlreadyExists) {
-				return fmt.Errorf("database error")
+			if errors.Is(err, domain.ErrAlreadyExists) {
+				log.Warn("collision detected, retrying", "attempt", attempts, "code", code)
+				return err
 			}
-			return err
+			log.Error("database save failed", "error", err)
+			return fmt.Errorf("database error")
 		}
 
 		res = buildResponse(record, req.ResolveBaseURL(""))
@@ -68,9 +87,11 @@ func (h *ShortenHandler) Handle(ctx context.Context, req *ShortenRequest) (*Shor
 	})
 
 	if err != nil {
+		log.Error("failed to generate short URL after retries", "error", err, "total_attempts", attempts)
 		return nil, huma.Error500InternalServerError(err.Error())
 	}
 
+	log.Info("random URL created successfully", "code", res.Body.Code, "attempts", attempts)
 	return res, nil
 }
 

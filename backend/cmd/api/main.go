@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"url-shortener/internal/config"
 	"url-shortener/internal/handler"
+	"url-shortener/internal/logger"
+	"url-shortener/internal/middleware"
 	"url-shortener/internal/repository"
 
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
@@ -15,6 +17,8 @@ import (
 
 func main() {
 	ctx := context.Background()
+
+	logger.Init()
 
 	cfg, err := config.Load(ctx)
 	if err != nil {
@@ -26,6 +30,7 @@ func main() {
 
 	mux := http.NewServeMux()
 	api := humago.New(mux, huma.DefaultConfig("URL Shortener API", "1.0.0"))
+	api.UseMiddleware(middleware.Logger())
 
 	srv := handler.NewServer(repo, api)
 	srv.Register()
