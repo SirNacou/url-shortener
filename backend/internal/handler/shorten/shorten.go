@@ -80,7 +80,7 @@ type ShortenRequest struct {
 	Body struct {
 		URL           string `json:"url" format:"uri"`
 		CustomCode    string `json:"custom_code,omitempty" minLength:"3" maxLength:"30" pattern:"^[a-zA-Z0-9_-]+$" doc:"Optional custom slug"`
-		ExpiresInDays int    `json:"expires_in_days,omitempty" minimum:"1" maximum:"365" default:"30" doc:"Duration before expiration"`
+		ExpiresInDays int    `json:"expires_in_days" required:"true" minimum:"1" maximum:"365" default:"30" doc:"Duration before expiration"`
 	}
 }
 
