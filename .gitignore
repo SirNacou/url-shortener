@@ -40,4 +40,8 @@
 /infra/crash.log
 /infra/crash.*.log
 
+# Generated artifacts
+/infra/bootstrap.zip
+/infra/tfplan
+
 .task/

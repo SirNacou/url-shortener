@@ -1,3 +1,6 @@
+# Version constraints for OpenTofu and providers, plus the remote S3 backend
+# and the AWS provider configuration.
+
 terraform {
   required_version = ">= 1.0.0, < 2.0.0"
 

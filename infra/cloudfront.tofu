@@ -1,3 +1,5 @@
+# CDN fronting both the static S3 frontend and the Lambda API, with OAC for S3.
+
 resource "aws_cloudfront_origin_access_control" "oac" {
   name                              = "s3-oac"
   origin_access_control_origin_type = "s3"

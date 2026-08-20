@@ -1,3 +1,5 @@
+# SSM parameters exposing resource identifiers to deploy tooling.
+
 resource "aws_ssm_parameter" "frontend_bucket" {
   name        = "/url-shortener/frontend-bucket-name"
   description = "S3 Bucket Name for URL Shortener UI"

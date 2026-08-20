@@ -1,3 +1,5 @@
+# Outputs consumed by deploy tooling and CI (frontend sync, cache invalidation).
+
 output "aws_region" {
   value       = var.aws_region
   description = "Target AWS deployment region"

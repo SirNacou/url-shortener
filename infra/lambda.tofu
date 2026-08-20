@@ -1,3 +1,7 @@
+# API Lambda (Go + Lambda Web Adapter) and its public function URL. The archive
+# below is a placeholder used at initial provisioning; real deployments zip the
+# Go binary via the backend Taskfile.
+
 data "archive_file" "dummy_lambda" {
   type        = "zip"
   output_path = "${path.module}/bootstrap.zip"

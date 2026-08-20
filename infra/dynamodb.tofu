@@ -1,3 +1,5 @@
+# DynamoDB table storing the shortened URL records.
+
 resource "aws_dynamodb_table" "urls" {
   name         = "short-urls"
   billing_mode = "PROVISIONED"

@@ -1,3 +1,5 @@
+# IAM role and inline policy granting the API Lambda access to DynamoDB.
+
 resource "aws_iam_role" "lambda_exec" {
   name = "url_shortener_lambda_role"
 
@@ -27,15 +29,6 @@ resource "aws_iam_role_policy" "lambda_policy" {
           "dynamodb:Scan"
         ]
         Resource = aws_dynamodb_table.urls.arn
-      },
-      {
-        Effect = "Allow"
-        Action = [
-          "logs:CreateLogGroup",
-          "logs:CreateLogStream",
-          "logs:PutLogEvents"
-        ]
-        Resource = "arn:aws:logs:*:*:*"
       }
     ]
   })

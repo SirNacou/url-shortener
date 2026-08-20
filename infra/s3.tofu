@@ -1,3 +1,5 @@
+# S3 bucket hosting the static frontend, locked down to CloudFront via OAC.
+
 resource "aws_s3_bucket" "frontend" {
   bucket_prefix = "url-shortener-ui-"
 }

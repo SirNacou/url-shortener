@@ -1,7 +1,47 @@
 version: 3
 
+vars:
+  TF_PLAN: tfplan
+
 tasks:
+  init:
+    desc: Initialize OpenTofu (providers, modules, backend)
+    cmd: tofu init
+
+  fmt:
+    desc: Format all configuration files
+    cmd: tofu fmt -recursive
+
+  validate:
+    desc: Validate configuration syntax and internals
+    cmd: tofu validate
+
   plan:
+    desc: Show the execution plan for the current state
     cmd: tofu plan
+
+  plan:out:
+    desc: Write the execution plan to a saved plan file
+    cmds:
+      - tofu plan -out={{.TF_PLAN}}
+    generates:
+      - tfplan
+
   apply:
+    desc: Apply the current configuration
     cmd: tofu apply
+
+  apply:plan:
+    desc: Apply a previously saved plan file
+    deps:
+      - plan:out
+    cmds:
+      - tofu apply {{.TF_PLAN}}
+
+  destroy:
+    desc: Destroy all managed resources
+    cmd: tofu destroy
+
+  outputs:
+    desc: Show the root module outputs
+    cmd: tofu output
